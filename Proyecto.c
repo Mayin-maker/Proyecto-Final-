@@ -410,76 +410,98 @@ void eliminarProducto() {
 }
 
 void modificarCostaProducto() {
-    getchar(); // Limpia buffer
-    char nombreBusca[50];
+    FILE *f, *temp;
+    char productoBuscado[50];
+    char nombre[50];
+    float precio;
+    int stock;
+    int encontrado = 0;
+
     printf("\n--- Modificar Costo de Producto ---\n");
-    printf("Ingresa el nombre del producto: ");
-    fgets(nombreBusca, sizeof(nombreBusca), stdin);
-    nombreBusca[strcspn(nombreBusca, "\n")] = 0;
+    printf("Ingrese el nombre del producto: ");
+    scanf("%s", productoBuscado);
 
-    int encontrado = -1;
+    f = fopen("productos.txt", "r");
+    temp = fopen("temp.txt", "w");
 
-    for (int i = 0; i < totalProductos; i++) {
-        if (strcmp(productos[i].nombre, nombreBusca) == 0) {
-            encontrado = i;
-            break;
-        }
-    }
-
-    if (encontrado == -1) {
-        printf(" Producto no encontrado.\n");
+    if (f == NULL || temp == NULL) {
+        printf("ERROR al abrir archivo.\n");
         return;
     }
 
-    float nuevoCosto;
-    printf("Costo actual: $ %.2f\n", productos[encontrado].costo);
-    printf("Nuevo costo: $ ");
-    scanf("%f", &nuevoCosto);
+    while (fscanf(f, "%s $%f existencias: %d", nombre, &precio, &stock) != EOF) {
 
-    productos[encontrado].costo = nuevoCosto;
+        if (strcmp(nombre, productoBuscado) == 0) {
+            encontrado = 1;
 
-    printf(" Costo actualizado correctamente.\n");
+            printf("\n✔ Producto encontrado.\n");
+            printf("Costo actual: $%.2f\n", precio);
+            printf("Nuevo costo: $");
+            scanf("%f", &precio);
+        }
+
+        fprintf(temp, "%s $%.2f existencias: %d\n", nombre, precio, stock);
+    }
+
+    fclose(f);
+    fclose(temp);
+
+    remove("productos.txt");
+    rename("temp.txt", "productos.txt");
+
+    if (encontrado)
+        printf("\n✔ Costo modificado correctamente.\n");
+    else
+        printf("\n Producto no encontrado.\n");
 }
 
 
 
+
 void modificarDineroUsuario() {
-    getchar(); // Limpiar buffer
-    char nombreBusca[50];
+    FILE *f, *temp;
+    char usuarioBuscado[30];
+    char user[30], pass[30];
+    float dinero;
+    int encontrado = 0;
+
     printf("\n--- Modificar Dinero del Usuario ---\n");
     printf("Ingrese el nombre del usuario: ");
-    fgets(nombreBusca, sizeof(nombreBusca), stdin);
-    nombreBusca[strcspn(nombreBusca, "\n")] = 0;
+    scanf("%s", usuarioBuscado);
 
-    int encontrado = -1;
+    f = fopen("clientes.txt", "r");
+    temp = fopen("temp.txt", "w");
 
-    // Buscar usuario
-    for (int i = 0; i < totalUsuarios; i++) {
-        if (strcmp(usuarios[i].nombre, nombreBusca) == 0) {
-            encontrado = i;
-            break;
-        }
-    }
-
-    if (encontrado == -1) {
-        printf("❌ Usuario no encontrado.\n");
+    if (f == NULL || temp == NULL) {
+        printf("ERROR al abrir archivo.\n");
         return;
     }
 
-    // Mostrar información actual
-    printf("\n--- Datos actuales ---\n");
-    printf("Nombre: %s\n", usuarios[encontrado].nombre);
-    printf("Contraseña: %s\n", usuarios[encontrado].password);
-    printf("Dinero actual: $ %.2f\n", usuarios[encontrado].dinero);
+    while (fscanf(f, "%s %s %f", user, pass, &dinero) != EOF) {
 
-    // Pedir nuevo dinero
-    float nuevoDinero;
-    printf("\nIngrese el nuevo dinero del usuario: $ ");
-    scanf("%f", &nuevoDinero);
+        if (strcmp(user, usuarioBuscado) == 0) {
+            encontrado = 1;
 
-    usuarios[encontrado].dinero = nuevoDinero;
+            printf("\n✔ Usuario encontrado.\n");
+            printf("Dinero actual: $%.2f\n", dinero);
 
-    printf("✔ Dinero actualizado correctamente.\n");
+            printf("Nuevo dinero: $");
+            scanf("%f", &dinero);
+        }
+
+        fprintf(temp, "%s %s %.2f\n", user, pass, dinero);
+    }
+
+    fclose(f);
+    fclose(temp);
+
+    remove("clientes.txt");
+    rename("temp.txt", "clientes.txt");
+
+    if (encontrado)
+        printf("\n✔ Dinero modificado correctamente.\n");
+    else
+        printf("\n Usuario no encontrado.\n");
 }
 
 
