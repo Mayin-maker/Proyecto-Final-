@@ -501,20 +501,17 @@ void modificarDineroUsuario() {
     rename("temp.txt", "clientes.txt");
 
     if (encontrado)
-        printf("\n✔ Dinero modificado correctamente.\n");
+        printf("\nDinero modificado correctamente. MIAU\n");
     else
         printf("\n Usuario no encontrado.\n");
 }
 
-
-
 //MARIOOOOO COMIENZA CON USUARIOOOO
-
-
 
 void usuario() {
     printd("hola\n");
 }
+
 
 
 
