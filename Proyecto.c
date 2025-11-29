@@ -102,6 +102,9 @@ void administrador() {
     int opc;
     do {
         printf("\n----- MENU ADMIN  -----\n");
+        printf(" /\\_/\\\n");
+        printf("( [o.o] )\n");
+        printf("  > ^ <\n");
         printf("1. Añadir Usuario\n");
         printf("2. Modificar Usuario\n");
         printf("3. Eliminar Usuario\n");
@@ -517,6 +520,7 @@ void modificarDineroUsuario() {
 void usuario() {
     printd("hola\n");
 }
+
 
 
 
