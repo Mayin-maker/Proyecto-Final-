@@ -436,6 +436,7 @@ void modificarCostaProducto() {
 
             printf("\n✔ Producto encontrado.\n");
             printf("Costo actual: $%.2f\n", precio);
+
             printf("Nuevo costo: $");
             scanf("%f", &precio);
         }
@@ -454,6 +455,7 @@ void modificarCostaProducto() {
     else
         printf("\n Producto no encontrado.\n");
 }
+
 
 
 
