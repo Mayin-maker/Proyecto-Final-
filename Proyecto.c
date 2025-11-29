@@ -27,6 +27,12 @@ int opcion;
 int main(){
     do{
     printf("******* WHISKERPETS *******\n");
+    printf("           /\\___/\\\n");
+    printf("          (  o o  )\n");
+    printf("          /   ^   \\\n");
+    printf("         /  |   |  \\\n");
+    printf("        (   |___|   )\n");
+    printf("         \\__|   |__/\n");
     printf("1. Administrador\n");
     printf("2. compra\n");
     printf("3.-Conatactar programador\n");
@@ -511,6 +517,7 @@ void modificarDineroUsuario() {
 void usuario() {
     printd("hola\n");
 }
+
 
 
 
