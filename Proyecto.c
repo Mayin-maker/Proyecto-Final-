@@ -26,7 +26,9 @@ int opcion;
 //MENU PRINCIPAL
 int main(){
     do{
-    printf("******* WHISKERPETS *******\n");
+    printf("________________________________ \n");
+    printf("║       WHISKERPETS            ║ \n");
+    printf(" \n");
     printf("           /\\___/\\\n");
     printf("          (  o o  )\n");
     printf("          /   ^   \\\n");
@@ -520,6 +522,7 @@ void modificarDineroUsuario() {
 void usuario() {
     printd("hola\n");
 }
+
 
 
 
