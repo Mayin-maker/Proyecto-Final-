@@ -186,7 +186,7 @@ void añadirProducto() {
 
     printf("\n--- Añadir Producto ---\n");
     printf("Nombre del producto: ");
-    scanf("%s", nombre);
+    scanf("%49s", nombre);        // límite para evitar overflow
     printf("Precio: ");
     scanf("%f", &precio);
     printf("Stock (existencias): ");
@@ -198,13 +198,11 @@ void añadirProducto() {
         return;
     }
 
-    // Guardamos con formato amigable
     fprintf(f, "%s $%.2f existencias: %d\n", nombre, precio, stock);
     fclose(f);
 
     printf("Producto agregado correctamente.\n");
 }
-//borrar usuario
 
 void eliminarUsuario() {
     FILE *f, *temp;
@@ -573,8 +571,12 @@ void usuario() {
     menuCliente(user, dineroDisponible);
 }
 
+// -----------------------------------------
+//  MENU CLIENTEEEEEEEEEEEEEEEE
+// -----------------------------------------
 void menuCliente(char usuario[], float dineroDisponible) {
     int opc;
+    float montoRecarga;
 
     do {
         printf("\n------ MENU CLIENTE ------\n");
@@ -586,15 +588,38 @@ void menuCliente(char usuario[], float dineroDisponible) {
         scanf("%d", &opc);
 
         switch(opc) {
-            case 1: mostrarProductos(); break;
-            case 2: comprarProducto(usuario, &dineroDisponible); break;
-            case 3: guardarDineroUsuario(char usuario[], float dineroNuevo); break;
-            case 4: printf("Saliendo...\n"); break;
-            default: printf("Opcion invalida.\n");
+            case 1:
+                mostrarProductos();
+                break;
+            case 2:
+                comprarProducto(usuario, &dineroDisponible);
+                break;
+            case 3:
+                printf("\nIngrese la cantidad a recargar: $");
+                if (scanf("%f", &montoRecarga) != 1) {
+                    printf("Entrada invalida.\n");
+                    // limpiar buffer si hace falta
+                    int c; while ((c = getchar()) != '\n' && c != EOF) ;
+                    break;
+                }
+                if (montoRecarga <= 0) {
+                    printf("Monto invalido.\n");
+                    break;
+                }
+                dineroDisponible += montoRecarga;
+                guardarDineroUsuario(usuario, dineroDisponible);
+                printf("Recarga exitosa. Nuevo saldo: $%.2f\n", dineroDisponible);
+                break;
+            case 4:
+                printf("Saliendo...\n");
+                break;
+            default:
+                printf("Opcion invalida.\n");
         }
 
     } while(opc != 4);
 }
+
 
 
 void mostrarProductos() {
@@ -620,22 +645,28 @@ void mostrarProductos() {
 }
 
 
+
+
+//  GUARDAR DINERO USUARIO
+-
 void guardarDineroUsuario(char usuario[], float dineroNuevo) {
-    FILE *f, *temp;
+    FILE *f = fopen("clientes.txt", "r");
+    FILE *temp = fopen("temp.txt", "w");
     char user[30], pass[30];
     float dinero;
-
-    f = fopen("clientes.txt", "r");
-    temp = fopen("temp.txt", "w");
+    int encontrado = 0;
 
     if (!f || !temp) {
-        printf("Error al abrir archivos.\n");
+        printf("Error al abrir archivos para actualizar saldo.\n");
+        if (f) fclose(f);
+        if (temp) fclose(temp);
         return;
     }
 
-    while (fscanf(f, "%s %s %f", user, pass, &dinero) != EOF) {
+    while (fscanf(f, "%29s %29s %f", user, pass, &dinero) == 3) {
         if (strcmp(user, usuario) == 0) {
-            dinero = dineroNuevo;   // ← actualiza saldo sin pedir dinero
+            dinero = dineroNuevo;
+            encontrado = 1;
         }
         fprintf(temp, "%s %s %.2f\n", user, pass, dinero);
     }
@@ -645,57 +676,83 @@ void guardarDineroUsuario(char usuario[], float dineroNuevo) {
 
     remove("clientes.txt");
     rename("temp.txt", "clientes.txt");
+
+    if (!encontrado) {
+        printf("Aviso: usuario %s no encontrado al guardar dinero (no se actualizó archivo).\n", usuario);
+    }
 }
 
+
+// -----------------------------------------
+//  COMPRARRR PRODUCTOOO
+// -----------------------------------------
 void comprarProducto(char usuario[], float *dineroDisponible) {
     char producto[50], nombre[50];
     float precio;
     int stock, cantidad;
     int encontrado = 0;
-
-    FILE *f, *temp;
+    FILE *f = NULL, *temp = NULL;
 
     mostrarProductos();
 
     printf("\nIngrese el nombre del producto que desea comprar: ");
-    scanf("%s", producto);
+    scanf("%49s", producto);
 
     f = fopen("productos.txt", "r");
+    if (!f) {
+        printf("Error: no se pudo abrir productos.txt\n");
+        return;
+    }
     temp = fopen("temp.txt", "w");
+    if (!temp) {
+        printf("Error: no se pudo crear archivo temporal.\n");
+        fclose(f);
+        return;
+    }
 
-    while (fscanf(f, "%s $%f existencias: %d", nombre, &precio, &stock) != EOF) {
-
+    while (fscanf(f, "%49s $%f existencias: %d", nombre, &precio, &stock) == 3) {
         if (strcmp(nombre, producto) == 0) {
             encontrado = 1;
-
             printf("Cuantos desea comprar? ");
-            scanf("%d", &cantidad);
-
-            float total = precio * cantidad;
+            if (scanf("%d", &cantidad) != 1) {
+                printf("Cantidad invalida.\n");
+                // copiar registro tal cual y seguir
+                fprintf(temp, "%s $%.2f existencias: %d\n", nombre, precio, stock);
+                int c; while ((c = getchar()) != '\n' && c != EOF) ;
+                continue;
+            }
 
             if (cantidad > stock) {
                 printf("\nNo hay suficientes existencias.\n");
-                fclose(f);
-                fclose(temp);
-                return;
+                // No cambio stock, lo escribimos igual
+                fprintf(temp, "%s $%.2f existencias: %d\n", nombre, precio, stock);
+                continue;
             }
+
+            float total = precio * cantidad;
+            // aplicar cupon si el usuario tiene uno
+            total = usarCupon(total);
 
             if (total > *dineroDisponible) {
                 printf("\nNo tiene suficiente dinero.\n");
                 printf("Faltan: $%.2f\n", total - *dineroDisponible);
-                printf("Regresando al menu...\n");
+                // escribimos el registro sin modificar
+                fprintf(temp, "%s $%.2f existencias: %d\n", nombre, precio, stock);
                 continue;
             }
 
-            // Actualizar dinero y stock
+            // compra exitosa: actualizar dinero y stock
             *dineroDisponible -= total;
             stock -= cantidad;
 
             printf("\n Compra realizada con exito.\n");
             generarTicket(usuario, producto, cantidad, precio, total);
 
+            // persistir nuevo saldo del usuario en archivo clientes
+            guardarDineroUsuario(usuario, *dineroDisponible);
         }
 
+        // escribir registro (modificado si era el comprado, o idéntico si no)
         fprintf(temp, "%s $%.2f existencias: %d\n", nombre, precio, stock);
     }
 
@@ -705,10 +762,11 @@ void comprarProducto(char usuario[], float *dineroDisponible) {
     remove("productos.txt");
     rename("temp.txt", "productos.txt");
 
-    // Actualizar archivo de cliente
-    recargarDinero(usuario, dineroDisponible);
+    if (!encontrado) {
+        printf("\nProducto no encontrado.\n");
+    }
 }
-////generar ticket 
+
 
 void generarTicket(char usuario[], char producto[], int cantidad, float precioUnitario, float total) {
     FILE *t;
@@ -811,6 +869,7 @@ float usarCupon(float total) {
     fclose(f);
     return total;
 }
+
 
 
 
