@@ -22,6 +22,7 @@ void recargarDinero(char usuario[], float *dineroDisponible);
 void generarTicket(char usuario[], char producto[], int cantidad, float precioUnitario, float total);
 int totalCompra();
 int agregarProducto();
+void mostrarProductos();
 //Variables globales
 int opcion;
 //variables struct
@@ -735,6 +736,7 @@ void generarTicket(char usuario[], char producto[], int cantidad, float precioUn
 
     printf("\n Ticket generado correctamente (ticket.txt)\n");
 }
+
 
 
 
