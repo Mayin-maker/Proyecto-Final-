@@ -15,9 +15,11 @@ void eliminarUsuario();
 void modificarDineroUsuario();
 void modificarCostaProducto();
 //Funciones de usuario
+void menuCliente(char usuario[], float dineroDisponible);
 void usuario();
-int comprarProducto();
-int recargarDinero();
+void comprarProducto(char usuario[], float *dineroDisponible);
+void recargarDinero(char usuario[], float *dineroDisponible);
+void generarTicket(char usuario[], char producto[], int cantidad, float precioUnitario, float total);
 int totalCompra();
 int agregarProducto();
 //Variables globales
@@ -401,7 +403,7 @@ void eliminarProducto() {
             } else {
                 // Si no se elimina, lo copiamos como estaba
                 fprintf(temp, "%s $%.2f existencias: %d\n", nombre, precio, stock);
-                printf("\n❗ Eliminación cancelada por el usuario.\n");
+                printf("\n Eliminación cancelada por el usuario.\n");
                 continue;
             }
         }
@@ -520,8 +522,221 @@ void modificarDineroUsuario() {
 //MARIOOOOO COMIENZA CON USUARIOOOO
 
 void usuario() {
-    
+    char user[30], pass[30];
+    char archivoUser[30], archivoPass[30];
+    float dineroDisponible;
+    int encontrado = 0;
+
+    FILE *f;
+    f = fopen("clientes.txt", "r");
+
+    if (f == NULL) {
+        printf("ERROR: No se pudo abrir clientes.txt\n");
+        return;
+    }
+
+    printf("\n--- INICIO DE SESION CLIENTE ---\n");
+    printf("Usuario: ");
+    scanf("%s", user);
+    printf("Contrasena: ");
+    scanf("%s", pass);
+
+    // Buscar usuario en archivo
+    while (fscanf(f, "%s %s %f", archivoUser, archivoPass, &dineroDisponible) != EOF) {
+        if (strcmp(user, archivoUser) == 0 && strcmp(pass, archivoPass) == 0) {
+            encontrado = 1;
+            break;
+        }
+    }
+
+    fclose(f);
+
+    if (!encontrado) {
+        printf("\nUsuario o contrasena incorrectos.\nRegresando al menú principal...\n");
+        return;
+    }
+
+    printf("\n✔ Bienvenido %s\n", user);
+    printf("Saldo disponible: $%.2f\n\n", dineroDisponible);
+
+    // SI ENTRA AQUI YA ESTÁ LOGEADO
+    menuCliente(user, dineroDisponible);
 }
+
+void menuCliente(char usuario[], float dineroDisponible) {
+    int opc;
+
+    do {
+        printf("\n------ MENU CLIENTE ------\n");
+        printf("1. Ver productos\n");
+        printf("2. Comprar productos\n");
+        printf("3. Recargar dinero\n");
+        printf("4. Salir\n");
+        printf("Seleccione una opcion: ");
+        scanf("%d", &opc);
+
+        switch(opc) {
+            case 1: mostrarProductos(); break;
+            case 2: comprarProducto(usuario, &dineroDisponible); break;
+            case 3: recargarDinero(usuario, &dineroDisponible); break;
+            case 4: printf("Saliendo...\n"); break;
+            default: printf("Opcion invalida.\n");
+        }
+
+    } while(opc != 4);
+}
+
+
+void mostrarProductos() {
+    FILE *f;
+    char nombre[50];
+    float precio;
+    int stock;
+
+    f = fopen("productos.txt", "r");
+
+    if (f == NULL) {
+        printf("ERROR: No se pudo abrir productos.txt\n");
+        return;
+    }
+
+    printf("\n--- PRODUCTOS DISPONIBLES ---\n");
+
+    while (fscanf(f, "%s $%f existencias: %d", nombre, &precio, &stock) != EOF) {
+        printf("Producto: %s | Precio: $%.2f | Stock: %d\n", nombre, precio, stock);
+    }
+
+    fclose(f);
+}
+
+
+void recargarDinero(char usuario[], float *dineroDisponible) {
+    float extra;
+
+    printf("Cuanto dinero quiere ingresar? $");
+    scanf("%f", &extra);
+
+    *dineroDisponible += extra;
+
+    // Guardar en archivo
+    FILE *f, *temp;
+    char user[30], pass[30];
+    float dinero;
+
+    f = fopen("clientes.txt", "r");
+    temp = fopen("temp.txt", "w");
+
+    while (fscanf(f, "%s %s %f", user, pass, &dinero) != EOF) {
+        if (strcmp(user, usuario) == 0) {
+            dinero = *dineroDisponible;
+        }
+        fprintf(temp, "%s %s %.2f\n", user, pass, dinero);
+    }
+
+    fclose(f);
+    fclose(temp);
+
+    remove("clientes.txt");
+    rename("temp.txt", "clientes.txt");
+
+    printf("\n✔ Dinero añadido correctamente.\n");
+}
+
+void comprarProducto(char usuario[], float *dineroDisponible) {
+    char producto[50], nombre[50];
+    float precio;
+    int stock, cantidad;
+    int encontrado = 0;
+
+    FILE *f, *temp;
+
+    mostrarProductos();
+
+    printf("\nIngrese el nombre del producto que desea comprar: ");
+    scanf("%s", producto);
+
+    f = fopen("productos.txt", "r");
+    temp = fopen("temp.txt", "w");
+
+    while (fscanf(f, "%s $%f existencias: %d", nombre, &precio, &stock) != EOF) {
+
+        if (strcmp(nombre, producto) == 0) {
+            encontrado = 1;
+
+            printf("Cuantos desea comprar? ");
+            scanf("%d", &cantidad);
+
+            float total = precio * cantidad;
+
+            if (cantidad > stock) {
+                printf("\nNo hay suficientes existencias.\n");
+                fclose(f);
+                fclose(temp);
+                return;
+            }
+
+            if (total > *dineroDisponible) {
+                printf("\nNo tiene suficiente dinero.\n");
+                printf("Faltan: $%.2f\n", total - *dineroDisponible);
+                printf("Regresando al menu...\n");
+                continue;
+            }
+
+            // Actualizar dinero y stock
+            *dineroDisponible -= total;
+            stock -= cantidad;
+
+            printf("\n Compra realizada con exito.\n");
+            generarTicket(usuario, producto, cantidad, precio, total);
+
+        }
+
+        fprintf(temp, "%s $%.2f existencias: %d\n", nombre, precio, stock);
+    }
+
+    fclose(f);
+    fclose(temp);
+
+    remove("productos.txt");
+    rename("temp.txt", "productos.txt");
+
+    // Actualizar archivo de cliente
+    recargarDinero(usuario, dineroDisponible);
+}
+////generar ticket 
+
+void generarTicket(char usuario[], char producto[], int cantidad, float precioUnitario, float total) {
+    FILE *t;
+    time_t ahora;
+    time(&ahora);
+
+    t = fopen("ticket.txt", "a"); // Se agrega al final para guardar muchos tickets
+
+    if (t == NULL) {
+        printf("ERROR: No se pudo crear ticket.txt\n");
+        return;
+    }
+
+    fprintf(t, "=====================================\n");
+    fprintf(t, "          TICKET DE COMPRA\n");
+    fprintf(t, "=====================================\n");
+    fprintf(t, "Cliente: %s\n", usuario);
+    fprintf(t, "Fecha: %s", ctime(&ahora)); // Fecha y hora automática
+    fprintf(t, "-------------------------------------\n");
+    fprintf(t, "Producto: %s\n", producto);
+    fprintf(t, "Cantidad: %d\n", cantidad);
+    fprintf(t, "Precio unitario: $%.2f\n", precioUnitario);
+    fprintf(t, "Total pagado: $%.2f\n", total);
+    fprintf(t, "-------------------------------------\n");
+    fprintf(t, " ¡Gracias por su compra! WOF WOF\n");
+    fprintf(t, "=====================================\n\n");
+
+    fclose(t);
+
+    printf("\n Ticket generado correctamente (ticket.txt)\n");
+}
+
+
 
 
 
