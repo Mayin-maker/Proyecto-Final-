@@ -847,28 +847,29 @@ float usarCupon(float total) {
         return total;
     }
 
-    printf("Ingrese el codigo del cupon: ");
+    printf("Ingrese el código del cupón: ");
     scanf("%s", codigoIngresado);
 
     while (fscanf(f, "%s %d", codigo, &descuento) == 2) {
         if (strcmp(codigo, codigoIngresado) == 0) {
-
-            float nuevoTotal = total - (total * descuento / 100);
-
-            printf("\n✓ Cupón valido!\n");
-            printf("Descuento aplicado: %d%%\n", descuento);
-            printf("Total antes: $%.2f\n", total);
-            printf("Total con descuento: $%.2f\n", nuevoTotal);
-
             fclose(f);
-            return nuevoTotal;
+
+            float rebaja = total * (descuento / 100.0);
+            float totalFinal = total - rebaja;
+
+            printf("\n✔ Cupón válido (%d%% de descuento)\n", descuento);
+            printf("Descuento aplicado: -$%.2f\n", rebaja);
+            printf("Nuevo total: $%.2f\n", totalFinal);
+
+            return totalFinal;
         }
     }
 
-    printf(" Cupón invalido.\n");
     fclose(f);
-    return total;
+    printf("\n Cupón no encontrado o inválido.\n");
+    return total; // No aplica descuento
 }
+
 
 
 
