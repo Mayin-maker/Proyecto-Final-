@@ -23,6 +23,11 @@ void generarTicket(char usuario[], char producto[], int cantidad, float precioUn
 int totalCompra();
 int agregarProducto();
 void mostrarProductos();
+//cupones
+void agregarCupon();
+float usarCupon(float total);
+
+
 //Variables globales
 int opcion;
 //variables struct
@@ -118,7 +123,8 @@ void administrador() {
         printf("6. Eliminar Producto\n");
         printf("7. Modificar Dinero de Usuario\n");
         printf("8. Modificar Costo de Producto\n");
-        printf("9. Salir\n");
+        printf("9.- Agregar cupon de descuento\n");
+        printf("10. Salir\n");
         printf("Seleccione una opcion: ");
         scanf("%d", &opc);
 
@@ -131,11 +137,14 @@ void administrador() {
             case 6: eliminarProducto(); break;
             case 7: modificarDineroUsuario(); break;
             case 8: modificarCostaProducto(); break;
-            case 9: printf("Saliendo del administrador...\n"); break;
+            case 9:
+            agregarCupon();
+            break;
+            case 10: printf("Saliendo del administrador...\n"); break;
             default: printf("Opción no valida.\n");
         }
 
-    } while(opc != 9);
+    } while(opc != 10);
 }
 
 //AQUI ESTA LA FUNCION PARA AÑADIR EL USUSARIO
@@ -737,6 +746,76 @@ void generarTicket(char usuario[], char producto[], int cantidad, float precioUn
     printf("\n Ticket generado correctamente (ticket.txt)\n");
 }
 
+
+void agregarCupon() {
+    FILE *f = fopen("cupones.txt", "a");
+    if (!f) {
+        printf("Error al abrir cupones.txt\n");
+        return;
+    }
+
+    char codigo[50];
+    int descuento;
+
+    printf("Ingrese el codigo del cupon: ");
+    scanf("%s", codigo);
+
+    printf("Ingrese el porcentaje de descuento (1-100): ");
+    scanf("%d", &descuento);
+
+    if (descuento < 1 || descuento > 100) {
+        printf("Descuento invalido.\n");
+        return;
+    }
+
+    fprintf(f, "%s %d\n", codigo, descuento);
+    fclose(f);
+
+    printf("\nCupon agregado correctamente!\n");
+}
+
+
+float usarCupon(float total) {
+    FILE *f = fopen("cupones.txt", "r");
+    if (!f) {
+        printf("No hay cupones disponibles.\n");
+        return total;
+    }
+
+    char codigo[50], codigoIngresado[50];
+    int descuento;
+
+    printf("¿Tiene algún cupón? (s/n): ");
+    char op;
+    scanf(" %c", &op);
+
+    if (op == 'n' || op == 'N') {
+        fclose(f);
+        return total;
+    }
+
+    printf("Ingrese el codigo del cupon: ");
+    scanf("%s", codigoIngresado);
+
+    while (fscanf(f, "%s %d", codigo, &descuento) == 2) {
+        if (strcmp(codigo, codigoIngresado) == 0) {
+
+            float nuevoTotal = total - (total * descuento / 100);
+
+            printf("\n✓ Cupón valido!\n");
+            printf("Descuento aplicado: %d%%\n", descuento);
+            printf("Total antes: $%.2f\n", total);
+            printf("Total con descuento: $%.2f\n", nuevoTotal);
+
+            fclose(f);
+            return nuevoTotal;
+        }
+    }
+
+    printf(" Cupón invalido.\n");
+    fclose(f);
+    return total;
+}
 
 
 
