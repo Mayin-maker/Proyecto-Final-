@@ -18,7 +18,7 @@ void modificarCostaProducto();
 void menuCliente(char usuario[], float dineroDisponible);
 void usuario();
 void comprarProducto(char usuario[], float *dineroDisponible);
-void recargarDinero(char usuario[], float *dineroDisponible);
+void guardarDineroUsuario(char usuario[], float dineroNuevo);
 void generarTicket(char usuario[], char producto[], int cantidad, float precioUnitario, float total);
 int totalCompra();
 int agregarProducto();
@@ -588,7 +588,7 @@ void menuCliente(char usuario[], float dineroDisponible) {
         switch(opc) {
             case 1: mostrarProductos(); break;
             case 2: comprarProducto(usuario, &dineroDisponible); break;
-            case 3: recargarDinero(usuario, &dineroDisponible); break;
+            case 3: guardarDineroUsuario(char usuario[], float dineroNuevo); break;
             case 4: printf("Saliendo...\n"); break;
             default: printf("Opcion invalida.\n");
         }
@@ -620,15 +620,7 @@ void mostrarProductos() {
 }
 
 
-void recargarDinero(char usuario[], float *dineroDisponible) {
-    float extra;
-
-    printf("Cuanto dinero quiere ingresar? $");
-    scanf("%f", &extra);
-
-    *dineroDisponible += extra;
-
-    // Guardar en archivo
+void guardarDineroUsuario(char usuario[], float dineroNuevo) {
     FILE *f, *temp;
     char user[30], pass[30];
     float dinero;
@@ -636,9 +628,14 @@ void recargarDinero(char usuario[], float *dineroDisponible) {
     f = fopen("clientes.txt", "r");
     temp = fopen("temp.txt", "w");
 
+    if (!f || !temp) {
+        printf("Error al abrir archivos.\n");
+        return;
+    }
+
     while (fscanf(f, "%s %s %f", user, pass, &dinero) != EOF) {
         if (strcmp(user, usuario) == 0) {
-            dinero = *dineroDisponible;
+            dinero = dineroNuevo;   // ← actualiza saldo sin pedir dinero
         }
         fprintf(temp, "%s %s %.2f\n", user, pass, dinero);
     }
@@ -648,8 +645,6 @@ void recargarDinero(char usuario[], float *dineroDisponible) {
 
     remove("clientes.txt");
     rename("temp.txt", "clientes.txt");
-
-    printf("\n✔ Dinero añadido correctamente.\n");
 }
 
 void comprarProducto(char usuario[], float *dineroDisponible) {
@@ -816,6 +811,7 @@ float usarCupon(float total) {
     fclose(f);
     return total;
 }
+
 
 
 
