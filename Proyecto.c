@@ -520,8 +520,9 @@ void modificarDineroUsuario() {
 //MARIOOOOO COMIENZA CON USUARIOOOO
 
 void usuario() {
-    printd("hola\n");
+    
 }
+
 
 
 
