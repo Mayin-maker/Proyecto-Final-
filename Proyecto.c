@@ -94,7 +94,7 @@ void administrador() {
         scanf("%s", pass);
 
         if(strcmp(user, archivoUser) == 0 && strcmp(pass, archivoPass) == 0) {
-            printf("\n✔ Acceso concedido.\n");
+            printf("\n Acceso concedido.\n");
             break;
         } else {
             printf("\n Usuario o contrasena incorrectos.\n");
@@ -869,6 +869,7 @@ float usarCupon(float total) {
     printf("\n Cupón no encontrado o inválido.\n");
     return total; // No aplica descuento
 }
+
 
 
 
