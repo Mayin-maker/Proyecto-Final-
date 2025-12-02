@@ -648,7 +648,7 @@ void mostrarProductos() {
 
 
 //  GUARDAR DINERO USUARIO
--
+
 void guardarDineroUsuario(char usuario[], float dineroNuevo) {
     FILE *f = fopen("clientes.txt", "r");
     FILE *temp = fopen("temp.txt", "w");
@@ -869,6 +869,7 @@ float usarCupon(float total) {
     printf("\n Cupón no encontrado o inválido.\n");
     return total; // No aplica descuento
 }
+
 
 
 
